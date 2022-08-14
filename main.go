@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"blaus/pkg/http"
+	"blaus/pkg/lib/csv"
 )
 
 const (
@@ -25,4 +26,12 @@ func main() {
 	}
 
 	fmt.Printf("Took %s to query %d repositories\n", time.Since(now), len(repositories))
+
+	now = time.Now()
+	err = csv.Save(repositories)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Printf("Took %s to csv %d repositories\n", time.Since(now), len(repositories))
 }
