@@ -76,10 +76,46 @@ func (r requester) QueryRepos(limit int) ([]*entity.Repository, error) {
 			return nil, err
 		}
 
+		for _, v := range parse.Data.Search.Repositories {
+			v.Issues.Closed, err = r.queryIssueTotalCount(v.ID, queries.IssueClosed)
+			if err != nil {
+				return nil, err
+			}
+
+			v.Issues.Open = v.Issues.TotalCount - v.Issues.Closed
+		}
+
 		repositories = append(repositories, parse.Data.Search.Repositories...)
 		after = parse.Data.Search.PageInfo.EndCursor
 		fmt.Printf("Collected %d repositories\n", len(repositories))
 	}
 
 	return repositories, nil
+}
+
+func (r requester) queryIssueTotalCount(repositoryID string, status queries.IssueStatus) (int, error) {
+	query, err := queries.Issues(repositoryID, queries.WithIssueStatus(status))
+	if err != nil {
+		return 0, err
+	}
+
+	res, err := r.post(bytes.NewBuffer(query))
+	if err != nil {
+		return 0, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	parse := &entity.NodeRepository{}
+	err = json.Unmarshal(body, &parse)
+	if err != nil {
+		return 0, err
+	}
+
+	return parse.Data.Node.Issues.TotalCount, nil
 }

@@ -2,6 +2,14 @@ package queries
 
 import (
 	"encoding/json"
+	"fmt"
+)
+
+type IssueStatus string
+
+const (
+	IssueOpen   = "OPEN"
+	IssueClosed = "CLOSED"
 )
 
 type QueryOptions func(*graphqlRequest)
@@ -27,6 +35,12 @@ func WithAfter(after string) func(*graphqlRequest) {
 	}
 }
 
+func WithIssueStatus(status IssueStatus) func(*graphqlRequest) {
+	return func(gql *graphqlRequest) {
+		gql.Variables["state"] = string(status)
+	}
+}
+
 func Repositories(options ...QueryOptions) ([]byte, error) {
 	query := `
 	query search($after: String) {
@@ -36,8 +50,12 @@ func Repositories(options ...QueryOptions) ([]byte, error) {
 			first: 20,
       		after: $after
 		) {
+			pageInfo {
+				endCursor
+			}
 			nodes {
 				... on Repository {
+					id
 					name
           			createdAt
 					updatedAt
@@ -66,6 +84,26 @@ func Repositories(options ...QueryOptions) ([]byte, error) {
 			}
 		}
 	}`
+
+	gqlRequest := newRequest(query)
+	for _, option := range options {
+		option(gqlRequest)
+	}
+
+	return json.Marshal(gqlRequest)
+}
+
+func Issues(repositoryID string, options ...QueryOptions) ([]byte, error) {
+	query := fmt.Sprintf(`
+	query search($state: IssueState!) {
+		node(id:"%s") {
+		  ... on Repository {
+			issues(states: [$state]) {
+			  totalCount
+			}
+		  }
+		}
+	  }`, repositoryID)
 
 	gqlRequest := newRequest(query)
 	for _, option := range options {
