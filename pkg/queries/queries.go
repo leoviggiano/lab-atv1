@@ -29,27 +29,36 @@ func WithAfter(after string) func(*graphqlRequest) {
 
 func Repositories(options ...QueryOptions) ([]byte, error) {
 	query := `
-	query search($after:String) {
+	query search($after: String) {
 		search(
 			query: "is:public sort:stars-desc stars:>10000",
 			type: REPOSITORY,
 			first: 20,
-			after: $after,
+      		after: $after
 		) {
 			nodes {
 				... on Repository {
 					name
           			createdAt
 					updatedAt
+          			pushedAt
+          			forkCount
+
 					primaryLanguage {
 						name
 					}
-					releases {
+          
+					releases(first: 1, orderBy: {field: CREATED_AT, direction: DESC}) {
 						totalCount
+						nodes {
+							createdAt
+						}
 					}
+          
 					pullRequests(states: [MERGED]) {
 						totalCount
 					}
+          
 					issues {
 						totalCount
 					}
