@@ -33,8 +33,6 @@ const (
 	RQ07 = "Sistemas escritos em linguagens mais populares recebem mais contribuição externa, lançam mais releases e são atualizados com mais frequência?"
 )
 
-var answers = map[string]interface{}{}
-
 func main() {
 	pathFile := "./etc/repositories.csv"
 	repositories, err := csv.ReadRepositories(pathFile)
@@ -105,6 +103,7 @@ func main() {
 		}
 	}
 
+	answers := make(map[string]string)
 	answers[RQ01] = fmt.Sprintf("Em média, os repositórios tem %d dias desde a criação", totalDaysCreatedAt/len(repositories))
 	answers[RQ02] = fmt.Sprintf("Em média, os repositórios tem um total de %d de pull requests aceitas", totalPullRequests/len(repositories))
 	answers[RQ03] = fmt.Sprintf("Em média, os repositórios tem %d releases", totalReleases/len(repositories))
