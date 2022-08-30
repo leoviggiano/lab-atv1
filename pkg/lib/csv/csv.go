@@ -39,3 +39,27 @@ func Save(repositories []*entity.Repository) error {
 	fmt.Printf("saved %d rows on csv with success\n", len(repositories))
 	return nil
 }
+
+func ReadRepositories(filePath string) ([]*entity.Repository, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	csvReader := csv.NewReader(file)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	repositories := make([]*entity.Repository, 0)
+
+	for _, row := range records[1:] {
+		repository := &entity.Repository{}
+		repository.FillFromCSV(row)
+
+		repositories = append(repositories, repository)
+	}
+
+	return repositories, nil
+}
