@@ -49,6 +49,10 @@ type Repository struct {
 	PrimaryLanguage PrimaryLanguage `json:"primaryLanguage"`
 	Releases        Releases        `json:"releases"`
 
+	Stargazers struct {
+		TotalCount int `json:"totalCount"`
+	} `json:"stargazers"`
+
 	PullRequests struct {
 		TotalCount int `json:"totalCount"`
 	} `json:"pullRequests"`
@@ -65,7 +69,7 @@ type Release struct {
 }
 
 func (r *Repository) CsvHeader() []string {
-	return []string{"Name", "CreatedAt", "UpdatedAt", "PrimaryLanguage", "Releases", "PullRequests", "Open Issues", "Closed Issues", "LastRelease"}
+	return []string{"Name", "CreatedAt", "UpdatedAt", "PrimaryLanguage", "Releases", "PullRequests", "Open Issues", "Closed Issues", "LastRelease", "Stars"}
 }
 
 func (r *Repository) CsvValues() []string {
@@ -84,6 +88,7 @@ func (r *Repository) CsvValues() []string {
 		strconv.Itoa(r.Issues.Open),
 		strconv.Itoa(r.Issues.Closed),
 		lastRelease,
+		strconv.Itoa(r.Stargazers.TotalCount),
 	}
 }
 
@@ -97,6 +102,7 @@ func (r *Repository) FillFromCSV(row []string) {
 	r.Issues.Open, _ = strconv.Atoi(row[6])
 	r.Issues.Closed, _ = strconv.Atoi(row[7])
 	r.Issues.TotalCount = r.Issues.Open + r.Issues.Closed
+	r.Stargazers.TotalCount, _ = strconv.Atoi(row[9])
 
 	if row[8] != NoRelease {
 		date, _ := time.Parse(time.RFC3339, row[8])

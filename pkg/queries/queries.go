@@ -65,7 +65,11 @@ func Repositories(options ...QueryOptions) ([]byte, error) {
 					primaryLanguage {
 						name
 					}
-          
+
+					stargazers {
+						totalCount
+					}
+
 					releases(first: 1, orderBy: {field: CREATED_AT, direction: DESC}) {
 						totalCount
 						nodes {
